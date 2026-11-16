@@ -108,10 +108,10 @@ Action: add `/test-results/` and `/playwright-report/` to `pm/frontend/.gitignor
 
 ## Action list (in order)
 
-1. [ ] Commit the current code and remove the stale tracked files (H4)
-2. [ ] Upgrade Next.js and fix audit findings; re-run lint, tsc, build and tests (H2)
-3. [ ] Fix test typings so `tsc --noEmit` passes (H3)
-4. [ ] Add `test-results/` and `playwright-report/` to `.gitignore` (M7)
+1. [x] Commit the current code and remove the stale tracked files (H4)
+2. [x] Upgrade Next.js and fix audit findings; re-run lint, tsc, build and tests (H2). Done: next 16.4.6, vitest 5.1, vite 8, @types/node 24 (also L6). Remaining: 7 moderate advisories in minimatch via typescript-eslint (lint tooling only, no upstream fix yet)
+3. [x] Fix test typings so `tsc --noEmit` passes (H3). Done: reference `vitest/globals`, import `@testing-library/jest-dom/vitest`
+4. [x] Add `test-results/` and `playwright-report/` to `.gitignore` (M7)
 5. [ ] Complete Part 1: detailed `PLAN.md` and `frontend/AGENTS.md`
 6. [ ] Implement card editing with tests (H1)
 7. [ ] Add keyboard sensor and fix nested interactive elements (M1)
