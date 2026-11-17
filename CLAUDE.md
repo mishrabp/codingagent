@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The only project is `pm/`, a Project Management MVP (Kanban board with an AI chat sidebar). `pm/AGENTS.md` holds the full business requirements, technical decisions, color scheme and coding standards. Read it, along with `pm/docs/PLAN.md` (the 10-part build plan), before starting work. Planning documents belong in `pm/docs/`.
 
-Current state: only the frontend exists, as a standalone client-side demo. `pm/backend/` and `pm/scripts/` contain only placeholder `AGENTS.md` files.
+Current state: the frontend loads and saves the board through a FastAPI backend (`pm/backend/`) that stores it in SQLite. Docker, the static build served by FastAPI, sign-in and AI are not built yet. `pm/scripts/` holds only a placeholder `AGENTS.md`. The persistence design is in `pm/docs/BACKEND_PLAN.md`.
 
 ## Target architecture (from pm/AGENTS.md)
 
@@ -29,13 +29,26 @@ npm run lint
 npm run test:unit        # Vitest (jsdom), src/**/*.test.{ts,tsx}
 npx vitest run src/lib/kanban.test.ts   # single unit test file
 npx vitest run -t "test name"           # single test by name
-npm run test:e2e         # Playwright (chromium), tests/; starts dev server on 127.0.0.1:3000
+npm run test:e2e         # Playwright; starts its own backend (port 8100, fresh data/e2e.db) and Next dev server (port 3100, .next-e2e)
 npx playwright test -g "moves a card"   # single e2e test
 ```
 
-Data model (`src/lib/kanban.ts`): `BoardData` is `{ columns: Column[], cards: Record<id, Card> }`. Each column's ordered `cardIds` array is the only record of card placement and order. `moveCard()` is a pure function that handles reordering within a column and moving between columns, dropping either on a card or on an empty column area. Board state lives in `useState` inside `KanbanBoard.tsx`, seeded from `initialData`, and is not persisted yet. Columns are fixed (five of them) and can only be renamed.
+Data model (`src/lib/kanban.ts`): `BoardData` is `{ columns: Column[], cards: Record<id, Card> }`. Each column's ordered `cardIds` array is the only record of card placement and order. `moveCard()` is a pure function that handles reordering within a column and moving between columns, dropping either on a card or on an empty column area. `KanbanBoard.tsx` loads the board with `fetchBoard()` (`src/lib/api.ts`) and sends every change as a whole-board `PUT /api/board`, one save at a time; a rejected save reloads the board. Column titles save on blur or Enter. In development `next.config.ts` rewrites `/api/*` to `BACKEND_URL` (default `http://127.0.0.1:8000`), so run the backend alongside `npm run dev`. Columns are fixed (five ids, enforced by the backend) and can only be renamed.
 
 E2E tests locate elements with `data-testid="column-<columnId>"` and `data-testid="card-<cardId>"`. Keep these attributes when changing components.
+
+## Backend (pm/backend)
+
+FastAPI, Python 3.13, uv, stdlib `sqlite3`. Details in `pm/backend/AGENTS.md`.
+
+```bash
+cd pm/backend
+uv run uvicorn app.main:app --reload --port 8000
+uv run pytest
+uv run pytest tests/test_api.py -k restart   # single test
+```
+
+The board is one JSON row per user in `boards.data`; Pydantic `Board` in `app/models.py` validates every write. The database is `DB_PATH` (default `backend/data/kanban.db`, gitignored); a user's seeded board is created on first read. Seed data lives only in `app/seed.py`.
 
 ## Coding standards (from pm/AGENTS.md)
 

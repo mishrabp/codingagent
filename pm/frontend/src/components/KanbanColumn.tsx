@@ -40,8 +40,21 @@ export const KanbanColumn = ({
             </span>
           </div>
           <input
-            value={column.title}
-            onChange={(event) => onRename(column.id, event.target.value)}
+            key={column.title}
+            defaultValue={column.title}
+            onBlur={(event) => {
+              const title = event.target.value.trim();
+              if (!title) {
+                event.target.value = column.title;
+              } else if (title !== column.title) {
+                onRename(column.id, title);
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.currentTarget.blur();
+              }
+            }}
             className="mt-3 w-full bg-transparent font-display text-lg font-semibold text-[var(--navy-dark)] outline-none"
             aria-label="Column title"
           />

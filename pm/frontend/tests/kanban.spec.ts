@@ -39,3 +39,22 @@ test("moves a card between columns", async ({ page }) => {
   await page.mouse.up();
   await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
 });
+
+test("keeps added cards and renamed columns after a reload", async ({ page }) => {
+  await page.goto("/");
+  const column = page.getByTestId("column-col-discovery");
+  await column.getByRole("button", { name: /add a card/i }).click();
+  await column.getByPlaceholder("Card title").fill("Persisted card");
+  await column.getByRole("button", { name: /add card/i }).click();
+
+  const title = page.getByTestId("column-col-done").getByLabel("Column title");
+  await title.fill("Shipped");
+  const saved = page.waitForResponse(
+    (response) => response.url().endsWith("/api/board") && response.request().method() === "PUT"
+  );
+  await title.press("Enter");
+  await saved;
+  await page.reload();
+  await expect(page.getByTestId("column-col-discovery").getByText("Persisted card")).toBeVisible();
+  await expect(page.getByTestId("column-col-done").getByLabel("Column title")).toHaveValue("Shipped");
+});

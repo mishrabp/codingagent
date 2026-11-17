@@ -1,0 +1,50 @@
+{
+  "database": "sqlite",
+  "location": "env DB_PATH, default backend/data/kanban.db",
+  "tables": {
+    "users": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY",
+        "username": "TEXT NOT NULL UNIQUE",
+        "created_at": "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP"
+      }
+    },
+    "boards": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY",
+        "user_id": "INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE",
+        "data": "TEXT NOT NULL (BoardData JSON)",
+        "updated_at": "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP"
+      }
+    }
+  },
+  "board_document": {
+    "columns": [
+      {
+        "id": "string, one of the 5 fixed ids",
+        "title": "string, non-empty",
+        "cardIds": [
+          "string"
+        ]
+      }
+    ],
+    "cards": {
+      "<cardId>": {
+        "id": "string, equals key",
+        "title": "string, non-empty",
+        "details": "string"
+      }
+    }
+  },
+  "fixed_column_ids": [
+    "col-backlog",
+    "col-discovery",
+    "col-progress",
+    "col-review",
+    "col-done"
+  ],
+  "seed": {
+    "when": "first read of a user's board creates the user row and a seeded board",
+    "board": "5 columns, 8 cards (card-1 .. card-8), defined in backend/app/seed.py"
+  }
+}
